@@ -53,15 +53,15 @@ class GcodeExport(inkex.Effect):
         self.OptionParser.add_option("","--resolution",action="store", type="int", dest="resolution", default="5",help="") #Usare il valore su float(xy)/resolution e un case per i DPI dell export
 
 
-        # Come convertire in scala di grigi
-        self.OptionParser.add_option("","--grayscale_type",action="store", type="int", dest="grayscale_type", default="1",help="")
-
         # Modalita di conversione in Bianco e Nero
         self.OptionParser.add_option("","--conversion_type",action="store", type="int", dest="conversion_type", default="1",help="")
 
         # Opzioni modalita
         self.OptionParser.add_option("","--BW_threshold",action="store", type="int", dest="BW_threshold", default="128",help="")
         self.OptionParser.add_option("","--grayscale_resolution",action="store", type="int", dest="grayscale_resolution", default="1",help="")
+        self.OptionParser.add_option("","--custom_cmd",action="store", type="string", dest="custom_cmd", default="", help="")
+        self.OptionParser.add_option("","--power_min",action="store", type="int", dest="power_min", default="0",help="")
+        self.OptionParser.add_option("","--power_max",action="store", type="int", dest="power_max", default="255",help="")
 
         #Velocita Nero e spostamento
         self.OptionParser.add_option("","--speed_ON",action="store", type="int", dest="speed_ON", default="200",help="")
@@ -118,35 +118,30 @@ class GcodeExport(inkex.Effect):
 
             suffix = ""
             if self.options.conversion_type == 1:
-                suffix = "_BWfix_"+str(self.options.BW_threshold)+"_"
+                suffix = "_Thresh_%d_" % (self.options.BW_threshold)
             elif self.options.conversion_type == 2:
-                suffix = "_BWrnd_"
+                suffix = "_Riemer_"
             elif self.options.conversion_type == 3:
-                suffix = "_H_"
+                suffix = "_Floyd_"
             elif self.options.conversion_type == 4:
-                suffix = "_Hrow_"
+                suffix = "_Ord_"
             elif self.options.conversion_type == 5:
-                suffix = "_Hcol_"
-            else:
-                if self.options.grayscale_resolution == 1:
-                    suffix = "_Gray_256_"
-                elif self.options.grayscale_resolution == 2:
-                    suffix = "_Gray_128_"
-                elif self.options.grayscale_resolution == 4:
-                    suffix = "_Gray_64_"
-                elif self.options.grayscale_resolution == 8:
-                    suffix = "_Gray_32_"
-                elif self.options.grayscale_resolution == 16:
-                    suffix = "_Gray_16_"
-                elif self.options.grayscale_resolution == 32:
-                    suffix = "_Gray_8_"
-                else:
-                    suffix = "_Gray_"
+                suffix = "_Remap_"
+            elif self.options.conversion_type == 6:
+                suffix = "_Gray_"
+            elif self.options.conversion_type == 7:
+                suffix = "_GrayR_%d_" % (self.options.grayscale_resolution)
+            elif self.options.conversion_type == 8:
+                suffix = "_GrayF_%d_" % (self.options.grayscale_resolution)
+            elif self.options.conversion_type == 9:
+                suffix = "_GrayO_%d_" % (self.options.grayscale_resolution)
+            elif self.options.conversion_type == 10:
+                suffix = "_Cust_"
 
 
             pos_file_png_exported = os.path.join(self.options.directory,self.options.filename+".png")
-            pos_file_png_BW = os.path.join(self.options.directory,self.options.filename+suffix+"preview.png")
-            pos_file_gcode = os.path.join(self.options.directory,self.options.filename+suffix+".gcode")
+            pos_file_png_BW = os.path.join(self.options.directory,self.options.filename+suffix+"BW.png")
+            pos_file_gcode = os.path.join(self.options.directory,self.options.filename+".gcode")
 
 
             #Esporto l'immagine in PNG
@@ -189,219 +184,53 @@ class GcodeExport(inkex.Effect):
 
     def PNGtoGcode(self,pos_file_png_exported,pos_file_png_BW,pos_file_gcode):
 
-        ######## GENERO IMMAGINE IN SCALA DI GRIGI ########
-        #Scorro l immagine e la faccio diventare una matrice composta da list
-
-
-        reader = png.Reader(pos_file_png_exported)#File PNG generato
-
-        w, h, pixels, metadata = reader.read_flat()
-
-
-        matrice = [[255 for i in range(w)]for j in range(h)]  #List al posto di un array
-
-
-        #Scrivo una nuova immagine in Scala di grigio 8bit
-        #copia pixel per pixel
-
-        if self.options.grayscale_type == 1:
-            #0.21R + 0.71G + 0.07B
-            for y in range(h): # y varia da 0 a h-1
-                for x in range(w): # x varia da 0 a w-1
-                    pixel_position = (x + y * w)*4 if metadata['alpha'] else (x + y * w)*3
-                    matrice[y][x] = int(pixels[pixel_position]*0.21 + pixels[(pixel_position+1)]*0.71 + pixels[(pixel_position+2)]*0.07)
-
-        elif self.options.grayscale_type == 2:
-            #(R+G+B)/3
-            for y in range(h): # y varia da 0 a h-1
-                for x in range(w): # x varia da 0 a w-1
-                    pixel_position = (x + y * w)*4 if metadata['alpha'] else (x + y * w)*3
-                    matrice[y][x] = int((pixels[pixel_position] + pixels[(pixel_position+1)]+ pixels[(pixel_position+2)]) / 3 )
-
-        elif self.options.grayscale_type == 3:
-            #R
-            for y in range(h): # y varia da 0 a h-1
-                for x in range(w): # x varia da 0 a w-1
-                    pixel_position = (x + y * w)*4 if metadata['alpha'] else (x + y * w)*3
-                    matrice[y][x] = int(pixels[pixel_position])
-
-        elif self.options.grayscale_type == 4:
-            #G
-            for y in range(h): # y varia da 0 a h-1
-                for x in range(w): # x varia da 0 a w-1
-                    pixel_position = (x + y * w)*4 if metadata['alpha'] else (x + y * w)*3
-                    matrice[y][x] = int(pixels[(pixel_position+1)])
-
-        elif self.options.grayscale_type == 5:
-            #B
-            for y in range(h): # y varia da 0 a h-1
-                for x in range(w): # x varia da 0 a w-1
-                    pixel_position = (x + y * w)*4 if metadata['alpha'] else (x + y * w)*3
-                    matrice[y][x] = int(pixels[(pixel_position+2)])
-
-        elif self.options.grayscale_type == 6:
-            #Max Color
-            for y in range(h): # y varia da 0 a h-1
-                for x in range(w): # x varia da 0 a w-1
-                    pixel_position = (x + y * w)*4 if metadata['alpha'] else (x + y * w)*3
-                    list_RGB = pixels[pixel_position] , pixels[(pixel_position+1)] , pixels[(pixel_position+2)]
-                    matrice[y][x] = int(max(list_RGB))
-
-        else:
-            #Min Color
-            for y in range(h): # y varia da 0 a h-1
-                for x in range(w): # x varia da 0 a w-1
-                    pixel_position = (x + y * w)*4 if metadata['alpha'] else (x + y * w)*3
-                    list_RGB = pixels[pixel_position] , pixels[(pixel_position+1)] , pixels[(pixel_position+2)]
-                    matrice[y][x] = int(min(list_RGB))
-
-
-        ####Ora matrice contiene l'immagine in scala di grigi
-
-
-        ######## GENERO IMMAGINE IN BIANCO E NERO ########
-        #Scorro matrice e genero matrice_BN
         B=255
         N=0
-
-        matrice_BN = [[255 for i in range(w)]for j in range(h)]
-
+        greyscale = False
 
         if self.options.conversion_type == 1:
-            #B/W fixed threshold
-            soglia = self.options.BW_threshold
-            for y in range(h):
-                for x in range(w):
-                    if matrice[y][x] >= soglia :
-                        matrice_BN[y][x] = B
-                    else:
-                        matrice_BN[y][x] = N
-
-
+            convert_options = "-normalize -threshold %d%% -colorspace Gray" % (self.options.BW_threshold)
         elif self.options.conversion_type == 2:
-            #B/W random threshold
-            from random import randint
-            for y in range(h):
-                for x in range(w):
-                    soglia = randint(20,235)
-                    if matrice[y][x] >= soglia :
-                        matrice_BN[y][x] = B
-                    else:
-                        matrice_BN[y][x] = N
-
-
+            convert_options = "-normalize -monochrome -colorspace Gray"
         elif self.options.conversion_type == 3:
-            #Halftone
-            Step1 = [[B,B,B,B,B],[B,B,B,B,B],[B,B,N,B,B],[B,B,B,B,B],[B,B,B,B,B]]
-            Step2 = [[B,B,B,B,B],[B,B,N,B,B],[B,N,N,N,B],[B,B,N,B,B],[B,B,B,B,B]]
-            Step3 = [[B,B,N,B,B],[B,N,N,N,B],[N,N,N,N,N],[B,N,N,N,B],[B,B,N,B,B]]
-            Step4 = [[B,N,N,N,B],[N,N,N,N,N],[N,N,N,N,N],[N,N,N,N,N],[B,N,N,N,B]]
-
-            for y in range(h/5):
-                for x in range(w/5):
-                    media = 0
-                    for y2 in range(5):
-                        for x2 in range(5):
-                            media +=  matrice[y*5+y2][x*5+x2]
-                    media = media /25
-                    for y3 in range(5):
-                        for x3 in range(5):
-                            if media >= 250 and media <= 255:
-                                matrice_BN[y*5+y3][x*5+x3] =     B
-                            if media >= 190 and media < 250:
-                                matrice_BN[y*5+y3][x*5+x3] =    Step1[y3][x3]
-                            if media >= 130 and media < 190:
-                                matrice_BN[y*5+y3][x*5+x3] =    Step2[y3][x3]
-                            if media >= 70 and media < 130:
-                                matrice_BN[y*5+y3][x*5+x3] =    Step3[y3][x3]
-                            if media >= 10 and media < 70:
-                                matrice_BN[y*5+y3][x*5+x3] =    Step4[y3][x3]
-                            if media >= 0 and media < 10:
-                                matrice_BN[y*5+y3][x*5+x3] = N
-
-
+            convert_options = "-normalize -colorspace Gray -dither FloydSteinberg -colors 2 -monochrome -colorspace Gray"
         elif self.options.conversion_type == 4:
-            #Halftone row
-            Step1r = [B,B,N,B,B]
-            Step2r = [B,N,N,B,B]
-            Step3r = [B,N,N,N,B]
-            Step4r = [N,N,N,N,B]
-
-            for y in range(h):
-                for x in range(w/5):
-                    media = 0
-                    for x2 in range(5):
-                        media +=  matrice[y][x*5+x2]
-                    media = media /5
-                    for x3 in range(5):
-                        if media >= 250 and media <= 255:
-                            matrice_BN[y][x*5+x3] =     B
-                        if media >= 190 and media < 250:
-                            matrice_BN[y][x*5+x3] =    Step1r[x3]
-                        if media >= 130 and media < 190:
-                            matrice_BN[y][x*5+x3] =    Step2r[x3]
-                        if media >= 70 and media < 130:
-                            matrice_BN[y][x*5+x3] =    Step3r[x3]
-                        if media >= 10 and media < 70:
-                            matrice_BN[y][x*5+x3] =    Step4r[x3]
-                        if media >= 0 and media < 10:
-                            matrice_BN[y][x*5+x3] = N
-
-
+            convert_options = "-normalize -ordered-dither o8x8,2 -monochrome -colorspace Gray"
         elif self.options.conversion_type == 5:
-            #Halftone column
-            Step1c = [B,B,N,B,B]
-            Step2c = [B,N,N,B,B]
-            Step3c = [B,N,N,N,B]
-            Step4c = [N,N,N,N,B]
+            convert_options = "-normalize -colorspace Gray -remap pattern:gray50 -colorspace Gray"
+        elif self.options.conversion_type == 6:
+            convert_options = "-colorspace Gray"
+            greyscale = True
+        elif self.options.conversion_type == 7:
+            convert_options = "-normalize -colorspace Gray -dither Riemersma -colors %d -colorspace Gray" % (self.options.grayscale_resolution)
+            greyscale = True
+        elif self.options.conversion_type == 8:
+            convert_options = "-normalize -colorspace Gray -dither FloydSteinberg -colors %d -colorspace Gray" % (self.options.grayscale_resolution)
+            greyscale = True
+        elif self.options.conversion_type == 9:
+            convert_options = "-colorspace Gray -ordered-dither o8x8,%d" % (self.options.grayscale_resolution)
+            greyscale = True
+        elif self.options.conversion_type == 10:
+            convert_options = (self.options.custom_cmd) + " -colorspace Gray"
+            greyscale = True
 
-            for y in range(h/5):
-                for x in range(w):
-                    media = 0
-                    for y2 in range(5):
-                        media +=  matrice[y*5+y2][x]
-                    media = media /5
-                    for y3 in range(5):
-                        if media >= 250 and media <= 255:
-                            matrice_BN[y*5+y3][x] =     B
-                        if media >= 190 and media < 250:
-                            matrice_BN[y*5+y3][x] =    Step1c[y3]
-                        if media >= 130 and media < 190:
-                            matrice_BN[y*5+y3][x] =    Step2c[y3]
-                        if media >= 70 and media < 130:
-                            matrice_BN[y*5+y3][x] =    Step3c[y3]
-                        if media >= 10 and media < 70:
-                            matrice_BN[y*5+y3][x] =    Step4c[y3]
-                        if media >= 0 and media < 10:
-                            matrice_BN[y*5+y3][x] = N
+        command="convert \"%s\" %s \"%s\"" % (pos_file_png_exported, convert_options, pos_file_png_BW)
 
-        else:
-            #Grayscale
-            if self.options.grayscale_resolution == 1:
-                matrice_BN = matrice
-            else:
-                for y in range(h):
-                    for x in range(w):
-                        if matrice[y][x] <= 1:
-                            matrice_BN[y][x] == 0
-
-                        if matrice[y][x] >= 254:
-                            matrice_BN[y][x] == 255
-
-                        if matrice[y][x] > 1 and matrice[y][x] <254:
-                            matrice_BN[y][x] = ( matrice[y][x] // self.options.grayscale_resolution ) * self.options.grayscale_resolution
+        p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        return_code = p.wait()
+        f = p.stdout
+        err = p.stderr
 
 
+        reader = png.Reader(pos_file_png_BW)
+        w, h, pixels, metadata = reader.read_flat()
+        matrice_BN = [[255 for i in range(w)]for j in range(h)]
 
-        ####Ora matrice_BN contiene l'immagine in Bianco (255) e Nero (0)
-
-
-        #### SALVO IMMAGINE IN BIANCO E NERO ####
-        file_img_BN = open(pos_file_png_BW, 'wb') #Creo il file
-        Costruttore_img = png.Writer(w, h, greyscale=True, bitdepth=8) #Impostazione del file immagine
-        Costruttore_img.write(file_img_BN, matrice_BN) #Costruttore del file immagine
-        file_img_BN.close()    #Chiudo il file
-
+        for y in range(h):
+            for x in range(w):
+                pixel_position = (x + y * w)
+                matrice_BN[y][x] = pixels[pixel_position] * 255 if metadata['bitdepth'] == 1 else pixels[pixel_position]
+                #inkex.debug(pixels[pixel_position])
 
         #### GENERO IL FILE GCODE ####
         if self.options.preview_only == False: #Genero Gcode solo se devo
@@ -418,7 +247,8 @@ class GcodeExport(inkex.Effect):
             file_gcode = open(pos_file_gcode, 'w')  #Creo il file
 
             #Configurazioni iniziali standard Gcode
-            file_gcode.write('; Generated with:\n; "Raster 2 Laser Gcode generator"\n; by 305 Engineering\n;\n;\n;\n')
+            file_gcode.write('; Generated with:\n; "Raster 2 Laser Gcode generator"\n; based on 305 Engineering work\n')
+            file_gcode.write('; Improved by A Metaphysical Drama\n;\n;\n;\n')
             #HOMING
             if self.options.homing == 1:
                 file_gcode.write('G28; home all axes\n')
@@ -437,7 +267,7 @@ class GcodeExport(inkex.Effect):
                 matrice_BN[y].append(B)
             w = w+1
 
-            if self.options.conversion_type != 6:
+            if not greyscale:
                 for y in range(h):
                     if y % 2 == 0 :
                         for x in range(w):
@@ -477,13 +307,20 @@ class GcodeExport(inkex.Effect):
                                             Laser_ON = False
 
             else: ##SCALA DI GRIGI
+                assert (self.options.power_max > self.options.power_min)
+                delta = self.options.power_max - self.options.power_min
+                # 255 : delta = pix : X
+                mul = delta / 255
+                base = self.options.power_min
+
                 for y in range(h):
                     if y % 2 == 0 :
                         for x in range(w):
                             if matrice_BN[y][x] != B :
                                 if Laser_ON == False :
                                     file_gcode.write('G00 X' + str(float(x)/Scala) + ' Y' + str(float(y)/Scala) +'\n')
-                                    file_gcode.write(self.options.laseron + ' '+ ' S' + str(255 - matrice_BN[y][x]) +'\n')
+                                    power = int(base + (255 - matrice_BN[y][x]) * mul)
+                                    file_gcode.write(self.options.laseron + ' '+ ' S' + str(power) +'\n')
                                     Laser_ON = True
 
                                 if  Laser_ON == True :   #DEVO evitare di uscire dalla matrice
@@ -500,7 +337,8 @@ class GcodeExport(inkex.Effect):
 
                                         elif matrice_BN[y][x] != matrice_BN[y][x+1] :
                                             file_gcode.write('G01 X' + str(float(x+1)/Scala) + ' Y' + str(float(y)/Scala) + ' F' + str(F_G01) +'\n')
-                                            file_gcode.write(self.options.laseron + ' '+ ' S' + str(255 - matrice_BN[y][x+1]) +'\n')
+                                            power = int(base + (255 - matrice_BN[y][x+1]) * mul)
+                                            file_gcode.write(self.options.laseron + ' '+ ' S' + str(power) +'\n')
 
 
                     else:
@@ -508,7 +346,8 @@ class GcodeExport(inkex.Effect):
                             if matrice_BN[y][x] != B :
                                 if Laser_ON == False :
                                     file_gcode.write('G00 X' + str(float(x+1)/Scala) + ' Y' + str(float(y)/Scala) +'\n')
-                                    file_gcode.write(self.options.laseron + ' '+ ' S' + str(255 - matrice_BN[y][x]) +'\n')
+                                    power = int(base + (255 - matrice_BN[y][x]) * mul)
+                                    file_gcode.write(self.options.laseron + ' '+ ' S' + str(power) +'\n')
                                     Laser_ON = True
 
                                 if  Laser_ON == True :   #DEVO evitare di uscire dalla matrice
@@ -525,7 +364,8 @@ class GcodeExport(inkex.Effect):
 
                                         elif  matrice_BN[y][x] != matrice_BN[y][x-1] :
                                             file_gcode.write('G01 X' + str(float(x)/Scala) + ' Y' + str(float(y)/Scala) + ' F' + str(F_G01) +'\n')
-                                            file_gcode.write(self.options.laseron + ' '+ ' S' + str(255 - matrice_BN[y][x-1]) +'\n')
+                                            power = int(base + (255 - matrice_BN[y][x-1]) * mul)
+                                            file_gcode.write(self.options.laseron + ' '+ ' S' + str(power) +'\n')
 
 
 
