@@ -16,7 +16,8 @@
 
     <!-- Titolo e descrizione -->
     <param name="Title" type="description">Raster 2 Laser GCode generator</param>
-    <param name="Description" type="description">Based on 305 Engineering work - Improved by A Metaphysical Drama</param>
+    <param name="Description" type="description">Based on 305 Engineering work
+    Improved by A Metaphysical Drama</param>
 
     <!-- Opzioni di esportazione dell'immagine -->
     <param name="directory" type="string"  gui-text="Export directory"></param>
@@ -53,6 +54,8 @@
 
     <!-- Velocità Nero e spostamento -->
     <param name="speed_ON" type="int" min="1" max="5000" gui-text="Engraving speed">200</param>
+    <param name="uniform_speed" type="boolean" gui-text="Uniform Speed">false</param>
+
 
     <!-- FLIP = coordinate Cartesiane (False) Coordinate "informatiche" (True) -->
     <param name="flip_y" type="boolean" gui-text="Flip Y">false</param>
@@ -66,11 +69,6 @@
 
     <param name="laseron" type="string"  gui-text="Laser ON Command">M03</param>
     <param name="laseroff" type="string"  gui-text="Laser OFF Command">M05</param>
-
-    <!-- Anteprima = Solo immagine BN -->
-    <param name="preview_only" type="boolean" gui-text="Preview only">false</param>
-    <param name="p_only" type="description">If "Preview only" is true the gcode file will not be generated.</param>
-
 
     <!-- Per togliere la casella Antepima diretta bisogna sostituire <effect> con <effect needs-live-preview="false">  -->
     <!-- <effect> -->
