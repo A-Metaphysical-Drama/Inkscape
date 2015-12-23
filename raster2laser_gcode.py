@@ -57,8 +57,8 @@ class GcodeExport(inkex.Effect):
         self.OptionParser.add_option("","--conversion_type",action="store", type="int", dest="conversion_type", default="1",help="")
 
         # Opzioni modalita
-        self.OptionParser.add_option("","--BW_threshold",action="store", type="int", dest="BW_threshold", default="128",help="")
-        self.OptionParser.add_option("","--grayscale_resolution",action="store", type="int", dest="grayscale_resolution", default="1",help="")
+        self.OptionParser.add_option("","--BW_threshold",action="store", type="int", dest="BW_threshold", default="50",help="")
+        self.OptionParser.add_option("","--grayscale_resolution",action="store", type="int", dest="grayscale_resolution", default="4",help="")
         self.OptionParser.add_option("","--custom_cmd",action="store", type="string", dest="custom_cmd", default="", help="")
         self.OptionParser.add_option("","--power_min",action="store", type="int", dest="power_min", default="0",help="")
         self.OptionParser.add_option("","--power_max",action="store", type="int", dest="power_max", default="255",help="")

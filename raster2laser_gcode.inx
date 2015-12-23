@@ -46,8 +46,8 @@
     </param>
 
     <!-- Opzioni modalita -->
-    <param name="BW_threshold" type="int" min="1" max="100" gui-text="B/W threshold percent">128</param>
-    <param name="grayscale_resolution" type="int" min="3" max="128" gui-text="Grayscale colors"></param>
+    <param name="BW_threshold" type="int" min="1" max="100" gui-text="B/W threshold percent">50</param>
+    <param name="grayscale_resolution" type="int" min="3" max="128" gui-text="Grayscale colors">4</param>
     <param name="custom_cmd" type="string"  gui-text="Custom options">-monochrome</param>
     <param name="power_min" type="int" min="1" max="24000" gui-text="Spindle power min">0</param>
     <param name="power_max" type="int" min="1" max="24000" gui-text="Spindle power max">255</param>
