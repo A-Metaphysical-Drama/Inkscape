@@ -225,7 +225,7 @@ class GcodeExport(inkex.Effect):
 
         for y in range(h):
             for x in range(w):
-                pixel_position = (x + y * w)
+                pixel_position = (x + y * w) * 2 if metadata['alpha'] else (x + y * w)
                 matrice_BN[y][x] = pixels[pixel_position] * 255 if metadata['bitdepth'] == 1 else pixels[pixel_position]
                 #inkex.debug(pixels[pixel_position])
 
@@ -316,7 +316,7 @@ class GcodeExport(inkex.Effect):
                             if Laser_ON == False :
                                 file_gcode.write('G00 X%f Y%f\n' % (float(x)/Scala, float(y)/Scala))
                                 power = int(base + (255 - matrice_BN[y][x]) * mul)
-                                file_gcode.write(self.options.laseron + ' '+ ' S' + str(power) +'\n')
+                                file_gcode.write('%s S%d\n' % (self.options.laseron, power))
                                 Laser_ON = True
 
                             if  Laser_ON == True :   #DEVO evitare di uscire dalla matrice
