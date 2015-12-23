@@ -428,7 +428,7 @@ class GcodeExport(inkex.Effect):
                 pass
             file_gcode.write('G21; Set units to millimeters\n')
             file_gcode.write('G90; Use absolute coordinates\n')
-            file_gcode.write('G92; Coordinate Offset\n')
+            #file_gcode.write('G92; Coordinate Offset\n')
 
             #Creazione del Gcode
 
