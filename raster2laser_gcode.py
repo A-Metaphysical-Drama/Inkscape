@@ -174,16 +174,9 @@ class GcodeExport(inkex.Effect):
         # -d 127 = risoluzione 127DPI  =>  5 pixel/mm  1pixel = 0.2mm
         ###command="inkscape -C -e \"%s\" -b\"%s\" %s -d 127" % (pos_file_png_exported,bg_color,current_file)
 
-        if self.options.resolution == 1:
-            DPI = 25.4
-        elif self.options.resolution == 2:
-            DPI = 50.8
-        elif self.options.resolution == 5:
-            DPI = 127
-        else:
-            DPI = 254
+        DPI = (254 * self.options.resolution) / 10
 
-        command="inkscape -C -e \"%s\" -b\"%s\" %s -d %s" % (pos_file_png_exported,bg_color,current_file,DPI) #Comando da linea di comando per esportare in PNG
+        command="inkscape -C -e \"%s\" -b\"%s\" %s -d %d" % (pos_file_png_exported,bg_color,current_file,DPI) #Comando da linea di comando per esportare in PNG
 
         p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         return_code = p.wait()

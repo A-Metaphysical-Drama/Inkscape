@@ -28,12 +28,7 @@
         <_item value="#000000">Black</_item>
     </param>
 
-    <param name="resolution" type="enum" gui-text="Resolution">
-        <_item value="1">1 pixel/mm</_item>
-        <_item value="2">2 pixel/mm</_item>
-        <_item value="5">5 pixel/mm</_item>
-        <_item value="10">10 pixel/mm</_item>
-    </param>
+    <param name="resolution" type="int" min="1" max="10" gui-text="Resolution in pixel/mm"></param>
 
     <!-- Come convertire in scala di grigi -->
     <param name="grayscale_type" type="enum" gui-text="Color to Grayscale conversion">
