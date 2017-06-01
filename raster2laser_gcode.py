@@ -76,6 +76,7 @@ class GcodeExport(inkex.Effect):
         # Commands
         self.OptionParser.add_option("","--laseron", action="store", type="string", dest="laseron", default="M03", help="")
         self.OptionParser.add_option("","--laseroff", action="store", type="string", dest="laseroff", default="M05", help="")
+	self.OptionParser.add_option("","--pause", action="store", type="float", dest="pause", default=0, help="")
 
         #inkex.errormsg("BLA BLA BLA Messaggio da visualizzare") #DEBUG
 
@@ -273,6 +274,8 @@ class GcodeExport(inkex.Effect):
                             if Laser_ON == False :
                                 file_gcode.write('G00 X%f Y%f\n' % (float(x)/Scala, float(y)/Scala))
                                 file_gcode.write("%s S%d\n" % (self.options.laseron, self.options.power_max))
+                                if self.options.pause:
+                                    file_gcode.write("G4 P%f\n" % (self.options.pause))
                                 Laser_ON = True
                             if  Laser_ON == True :   #DEVO evitare di uscire dalla matrice
                                 if x == w-1 :
@@ -290,6 +293,8 @@ class GcodeExport(inkex.Effect):
                             if Laser_ON == False :
                                 file_gcode.write('G00 X%f Y%f\n' % (float(x)/Scala, float(y)/Scala))
                                 file_gcode.write("%s S%d\n" % (self.options.laseron, self.options.power_max))
+                                if self.options.pause:
+                                    file_gcode.write("G4 P%f\n" % (self.options.pause))
                                 Laser_ON = True
                             if  Laser_ON == True:   #DEVO evitare di uscire dalla matrice
                                 if x == 0 :
@@ -317,6 +322,8 @@ class GcodeExport(inkex.Effect):
                                 file_gcode.write('G00 X%f Y%f\n' % (float(x)/Scala, float(y)/Scala))
                                 power = int(base + (255 - matrice_BN[y][x]) * mul)
                                 file_gcode.write('%s S%d\n' % (self.options.laseron, power))
+                                if self.options.pause:
+                                    file_gcode.write("G4 P%f\n" % (self.options.pause))
                                 Laser_ON = True
 
                             if  Laser_ON == True :   #DEVO evitare di uscire dalla matrice
@@ -335,6 +342,8 @@ class GcodeExport(inkex.Effect):
                                         file_gcode.write('G01 X%f Y%f\n' % (float(x+1)/Scala, float(y)/Scala))
                                         power = int(base + (255 - matrice_BN[y][x+1]) * mul)
                                         file_gcode.write('%s S%d\n' % (self.options.laseron, power))
+                                        if self.options.pause:
+                                            file_gcode.write("G4 P%f\n" % (self.options.pause))
 
 
                 else:
@@ -344,6 +353,8 @@ class GcodeExport(inkex.Effect):
                                 power = int(base + (255 - matrice_BN[y][x]) * mul)
                                 file_gcode.write('G00 X%f Y%f\n' % (float(x+1)/Scala, float(y)/Scala))
                                 file_gcode.write('%s S%d\n' % (self.options.laseron, power))
+                                if self.options.pause:
+                                    file_gcode.write("G4 P%f\n" % (self.options.pause))
                                 Laser_ON = True
 
                             if  Laser_ON == True :   #DEVO evitare di uscire dalla matrice
@@ -362,6 +373,8 @@ class GcodeExport(inkex.Effect):
                                         power = int(base + (255 - matrice_BN[y][x-1]) * mul)
                                         file_gcode.write('G01 X%f Y%f\n' % (float(x)/Scala, float(y)/Scala))
                                         file_gcode.write('%s S%d\n' % (self.options.laseron, power))
+                                        if self.options.pause:
+                                            file_gcode.write("G4 P%f\n" % (self.options.pause))
 
 
 

@@ -69,6 +69,7 @@
 
     <param name="laseron" type="string"  gui-text="Laser ON Command">M03</param>
     <param name="laseroff" type="string"  gui-text="Laser OFF Command">M05</param>
+    <param name="pause" type="float" precision="3" gui-text="Pause Time">0</param>
 
     <!-- Per togliere la casella Antepima diretta bisogna sostituire <effect> con <effect needs-live-preview="false">  -->
     <!-- <effect> -->
